@@ -1,0 +1,103 @@
+
+// Extremum Save MT4 - Trading Robot
+// Developer's Site: forexroboteasy.com
+// Developed by: Forex Robot Easy Team
+
+// Include necessary libraries and define constants
+#include <Trade\Trade.mqh>
+#include <Math\Math.mqh>
+
+#define SYMBOL 'EURUSD'
+#define STOP_LOSS 20
+#define RISK_PERCENTAGE 1
+#define POSITION_SIZE NormalizeDouble(AccountBalance()*RISK_PERCENTAGE/100/STOP_LOSS, 2)
+
+// Define entry conditions
+bool ShouldEnter()
+{
+    // Your entry conditions logic here
+    return true;
+}
+
+// Define exit conditions
+bool ShouldExit()
+{
+    // Your exit conditions logic here
+    return false;
+}
+
+// Place order based on predefined entry conditions
+void PlaceOrder()
+{
+    double entryPrice = SymbolInfoDouble(SYMBOL, SYMBOL_ASK);
+    double stopLoss = entryPrice - STOP_LOSS * Point;
+
+    if(OrderSend(SYMBOL, OP_BUY, POSITION_SIZE, entryPrice, 0, stopLoss, 0, 'Buy Order', 0, 0, Green))
+    {
+        Print('Buy order placed successfully');
+    }
+    else
+    {
+        Print('Failed to place buy order');
+    }
+}
+
+// Exit trades based on predefined exit conditions
+void ExitTrades()
+{
+    if(ShouldExit())
+    {
+        if(Trade.PositionClose(POSITION_TYPE_BUY))
+        {
+            Print('Buy order closed successfully');
+        }
+        else
+        {
+            Print('Failed to close buy order');
+        }
+    }
+}
+
+// Manage trade positions, including partial closing and trailing stop
+void ManagePositions()
+{
+    if(Trade.PositionGetInteger(POSITION_TYPE_BUY, POSITION_STATE) == POSITION_STATE_ACTIVE)
+    {
+        double currentPrice = SymbolInfoDouble(SYMBOL, SYMBOL_BID);
+
+        if(currentPrice > StopLoss)
+        {
+            double trailingStop = currentPrice - STOP_LOSS * Point;
+            Trade.PositionSetDouble(POSITION_TYPE_BUY, POSITION_SL, trailingStop);
+        }
+
+        // Your partial closing logic here
+    }
+}
+
+// Implement risk management techniques
+void RiskManagement()
+{
+    // Position sizing and risk per trade logic here
+}
+
+// Provide real-time updates on trade performance and account balance
+void UpdateTradePerformance()
+{
+    // Your trade performance updates logic here
+}
+
+// Start of the program
+void OnTick()
+{
+    RiskManagement();
+
+    if(ShouldEnter())
+    {
+        PlaceOrder();
+    }
+
+    ExitTrades();
+    ManagePositions();
+    UpdateTradePerformance();
+}
